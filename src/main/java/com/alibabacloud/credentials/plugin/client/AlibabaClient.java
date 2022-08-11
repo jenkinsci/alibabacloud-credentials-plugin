@@ -1,9 +1,9 @@
 package com.alibabacloud.credentials.plugin.client;
 
 import com.alibaba.fastjson.JSON;
+import com.alibabacloud.credentials.plugin.auth.AlibabaCredentials;
 import com.aliyuncs.DefaultAcsClient;
 import com.aliyuncs.IAcsClient;
-import com.aliyuncs.auth.AlibabaCloudCredentials;
 import com.aliyuncs.ecs.model.v20140526.DescribeKeyPairsRequest;
 import com.aliyuncs.ecs.model.v20140526.DescribeKeyPairsResponse;
 import com.aliyuncs.ecs.model.v20140526.DescribeRegionsRequest;
@@ -30,10 +30,11 @@ public class AlibabaClient {
     @Getter
     private String regionNo;
 
-    public AlibabaClient(AlibabaCloudCredentials credentials, String regionNo, boolean isVpcEnv) {
+    public AlibabaClient(AlibabaCredentials credentials, String regionNo, boolean isVpcEnv) {
         IClientProfile profile = DefaultProfile.getProfile(regionNo,
             credentials.getAccessKeyId(),
-            credentials.getAccessKeySecret());
+            credentials.getAccessKeySecret(),
+            credentials.getAccessKeyToken());
         // 如果JenkinsMaster是在VPC内网环境下, 则使用内网域名
         if(isVpcEnv) {
             profile.enableUsingVpcEndpoint();

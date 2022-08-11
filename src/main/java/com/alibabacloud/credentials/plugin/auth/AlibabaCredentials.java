@@ -36,24 +36,27 @@ import java.util.UUID;
     priority = 1
 )
 @Slf4j
-public class AlibabaCredentials extends BaseStandardCredentials implements AlibabaCloudCredentials {
+public class AlibabaCredentials extends BaseStandardCredentials implements AlibabaCloudCredentials, AlibabaTokenCredentials {
     private final String accessKey;
     private final Secret secretKey;
+    private final String secretToken;
     public static final String DEFAULT_ECS_REGION = "cn-beijing";
 
-    public AlibabaCredentials(@CheckForNull String accessKey, @CheckForNull String secretKey) {
+    public AlibabaCredentials(@CheckForNull String accessKey, @CheckForNull String secretKey, String secretToken) {
         super(CredentialsScope.GLOBAL, UUID.randomUUID().toString(), "test");
         this.accessKey = accessKey;
         this.secretKey = Secret.fromString(secretKey);
+        this.secretToken = secretToken;
     }
 
     @DataBoundConstructor
     public AlibabaCredentials(@CheckForNull CredentialsScope scope, @CheckForNull String id,
                               @CheckForNull String accessKey, @CheckForNull String secretKey,
-                              @CheckForNull String description) {
+                              @CheckForNull String description, String secretToken) {
         super(scope, id, description);
         this.accessKey = accessKey;
         this.secretKey = Secret.fromString(secretKey);
+        this.secretToken = secretToken;
     }
 
     public String getAccessKey() {
@@ -62,6 +65,10 @@ public class AlibabaCredentials extends BaseStandardCredentials implements Aliba
 
     public Secret getSecretKey() {
         return secretKey;
+    }
+
+    public String getSecretToken() {
+        return secretToken;
     }
 
     public String getDisplayName() {
@@ -83,6 +90,10 @@ public class AlibabaCredentials extends BaseStandardCredentials implements Aliba
         return secretKey.getPlainText();
     }
 
+    @Override
+    public String getAccessKeyToken() {
+        return secretToken;
+    }
 
 
     @Extension
@@ -99,6 +110,7 @@ public class AlibabaCredentials extends BaseStandardCredentials implements Aliba
 
         @RequirePOST
         public FormValidation doCheckSecretKey(@QueryParameter("accessKey") String accessKey,
+                                               @QueryParameter("secretToken") String secretToken,
                                                @QueryParameter String value) {
             if(!this.getACL().hasPermission(CREATE) && !getACL().hasPermission(UPDATE)){
                 return FormValidation.error("permission is error");
@@ -114,7 +126,7 @@ public class AlibabaCredentials extends BaseStandardCredentials implements Aliba
                 return FormValidation.error("Illegal Secret Key");
             }
 
-            AlibabaCloudCredentials credentials = new AlibabaCredentials(accessKey, value);
+            AlibabaCredentials credentials = new AlibabaCredentials(accessKey, value, secretToken);
             AlibabaClient client = new AlibabaClient(credentials, DEFAULT_ECS_REGION, false);
             List<DescribeRegionsResponse.Region> regions = client.describeRegions();
             if (CollectionUtils.isEmpty(regions)) {
