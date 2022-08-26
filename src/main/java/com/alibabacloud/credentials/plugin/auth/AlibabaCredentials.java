@@ -37,8 +37,15 @@ import java.util.UUID;
 )
 @Slf4j
 public class AlibabaCredentials extends BaseStandardCredentials implements AlibabaCloudCredentials {
-    private final String accessKey;
-    private final Secret secretKey;
+    private static final long serialVersionUID = -323740205079785605L;
+    /**
+     * 主账号的AK, 或者RamRole的临时AK
+     */
+    protected String accessKey;
+    /**
+     * 主账号的SK, 或者RamRole的临时SK
+     */
+    protected Secret secretKey;
     public static final String DEFAULT_ECS_REGION = "cn-beijing";
 
     public AlibabaCredentials(@CheckForNull String accessKey, @CheckForNull String secretKey) {
@@ -54,6 +61,10 @@ public class AlibabaCredentials extends BaseStandardCredentials implements Aliba
         super(scope, id, description);
         this.accessKey = accessKey;
         this.secretKey = Secret.fromString(secretKey);
+    }
+
+    public AlibabaCredentials(CredentialsScope scope, String id, String description) {
+        super(scope, id, description);
     }
 
     public String getAccessKey() {
@@ -83,7 +94,13 @@ public class AlibabaCredentials extends BaseStandardCredentials implements Aliba
         return secretKey.getPlainText();
     }
 
+    public void setAccessKey(String accessKey) {
+        this.accessKey = accessKey;
+    }
 
+    public void setSecretKey(String secretKey) {
+        this.secretKey = Secret.fromString(secretKey);
+    }
 
     @Extension
     public static class DescriptorImpl extends CredentialsDescriptor {

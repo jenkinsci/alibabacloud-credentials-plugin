@@ -1,14 +1,20 @@
 package com.alibabacloud.credentials.plugin.client;
 
 import com.alibaba.fastjson.JSON;
+import com.alibabacloud.credentials.plugin.auth.AlibabaSessionTokenCredentials;
+import com.alibabacloud.credentials.plugin.util.CredentialsHelper;
 import com.aliyuncs.DefaultAcsClient;
 import com.aliyuncs.IAcsClient;
 import com.aliyuncs.auth.AlibabaCloudCredentials;
+import com.aliyuncs.auth.sts.AssumeRoleRequest;
+import com.aliyuncs.auth.sts.AssumeRoleResponse;
 import com.aliyuncs.ecs.model.v20140526.DescribeKeyPairsRequest;
 import com.aliyuncs.ecs.model.v20140526.DescribeKeyPairsResponse;
 import com.aliyuncs.ecs.model.v20140526.DescribeRegionsRequest;
 import com.aliyuncs.ecs.model.v20140526.DescribeRegionsResponse;
 import com.aliyuncs.ecs.model.v20140526.DescribeRegionsResponse.Region;
+import com.aliyuncs.exceptions.ClientException;
+import com.aliyuncs.http.FormatType;
 import com.aliyuncs.profile.DefaultProfile;
 import com.aliyuncs.profile.IClientProfile;
 import com.google.common.collect.Lists;
@@ -31,9 +37,17 @@ public class AlibabaClient {
     private String regionNo;
 
     public AlibabaClient(AlibabaCloudCredentials credentials, String regionNo, boolean isVpcEnv) {
-        IClientProfile profile = DefaultProfile.getProfile(regionNo,
-            credentials.getAccessKeyId(),
-            credentials.getAccessKeySecret());
+        IClientProfile profile;
+        if (CredentialsHelper.isSessionTokenCredentials(credentials)) {
+            profile = DefaultProfile.getProfile(regionNo,
+                    credentials.getAccessKeyId(),
+                    credentials.getAccessKeySecret(),
+                    ((AlibabaSessionTokenCredentials) credentials).getSecretToken());
+        } else {
+            profile = DefaultProfile.getProfile(regionNo,
+                    credentials.getAccessKeyId(),
+                    credentials.getAccessKeySecret());
+        }
         // 如果JenkinsMaster是在VPC内网环境下, 则使用内网域名
         if(isVpcEnv) {
             profile.enableUsingVpcEndpoint();
@@ -41,6 +55,16 @@ public class AlibabaClient {
         this.client = new DefaultAcsClient(profile);
         this.regionNo = regionNo;
         log.info("AlibabaClient init success. regionNo: {} isVpcEnv: {}", regionNo, isVpcEnv);
+    }
+
+    public AssumeRoleResponse createAssumeRoleRequest(String iamRoleArn, String roleSessionName, Long stsTokenDuration) throws ClientException {
+        AssumeRoleRequest assumeRoleRequest = new AssumeRoleRequest();
+        assumeRoleRequest.setMethod(com.aliyuncs.http.MethodType.POST);
+        assumeRoleRequest.setAcceptFormat(FormatType.JSON);
+        assumeRoleRequest.setRoleArn(iamRoleArn);
+        assumeRoleRequest.setRoleSessionName(roleSessionName);
+        assumeRoleRequest.setDurationSeconds(stsTokenDuration);
+        return client.getAcsResponse(assumeRoleRequest);
     }
 
     public List<Region> describeRegions() {
