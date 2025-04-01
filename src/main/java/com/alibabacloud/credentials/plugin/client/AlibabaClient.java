@@ -15,6 +15,8 @@ import com.aliyuncs.ecs.model.v20140526.DescribeRegionsResponse;
 import com.aliyuncs.ecs.model.v20140526.DescribeRegionsResponse.Region;
 import com.aliyuncs.exceptions.ClientException;
 import com.aliyuncs.http.FormatType;
+import com.aliyuncs.http.HttpClientConfig;
+import com.aliyuncs.http.ProtocolType;
 import com.aliyuncs.profile.DefaultProfile;
 import com.aliyuncs.profile.IClientProfile;
 import com.google.common.collect.Lists;
@@ -52,6 +54,10 @@ public class AlibabaClient {
         if(isVpcEnv) {
             profile.enableUsingVpcEndpoint();
         }
+        HttpClientConfig clientConfig = HttpClientConfig.getDefault();
+        clientConfig.setProtocolType(ProtocolType.HTTPS);
+        clientConfig.setIgnoreSSLCerts(true);
+        profile.setHttpClientConfig(clientConfig);
         this.client = new DefaultAcsClient(profile);
         this.regionNo = regionNo;
         log.info("AlibabaClient init success. regionNo: {} isVpcEnv: {}", regionNo, isVpcEnv);
