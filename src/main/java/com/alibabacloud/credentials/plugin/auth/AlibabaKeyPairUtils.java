@@ -8,7 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -20,6 +19,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.interfaces.RSAPublicKey;
 import java.util.List;
+import hudson.Util;
 
 /**
  * Created by kunlun.ykl on 2020/9/21.
@@ -93,7 +93,7 @@ public class AlibabaKeyPairUtils {
      */
     public static KeyPair find(String pemData, AlibabaCredentials credentials, String regionNo) {
         String pfp = getPublicFingerprint(pemData);
-        if (StringUtils.isBlank(pfp)) {
+        if (Util.fixEmptyAndTrim(pfp) == null) {
             log.error("getPublicFingerprint error");
             return null;
         }
@@ -108,7 +108,7 @@ public class AlibabaKeyPairUtils {
 
     public static KeyPair find(String pemData, AlibabaCredentials credentials, String regionNo, boolean isVpcEnv) {
         String pfp = getPublicFingerprint(pemData);
-        if (StringUtils.isBlank(pfp)) {
+        if (Util.fixEmptyAndTrim(pfp) == null) {
             log.error("getPublicFingerprint error");
             return null;
         }
