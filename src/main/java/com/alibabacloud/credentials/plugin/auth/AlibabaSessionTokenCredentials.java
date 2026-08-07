@@ -8,14 +8,13 @@ import com.cloudbees.plugins.credentials.CredentialsDescriptor;
 import com.cloudbees.plugins.credentials.CredentialsScope;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import hudson.Extension;
+import hudson.Functions;
 import hudson.security.ACL;
 import hudson.util.FormValidation;
 import hudson.util.Secret;
 import jenkins.model.Jenkins;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.interceptor.RequirePOST;
@@ -27,6 +26,7 @@ import java.util.UUID;
 
 import static hudson.security.Permission.CREATE;
 import static hudson.security.Permission.UPDATE;
+import hudson.Util;
 
 /**
  * @author gaojiahao wb511401
@@ -87,7 +87,7 @@ public class AlibabaSessionTokenCredentials extends AlibabaCredentials implement
             this.secretToken = assumeRoleRequest.getCredentials().getSecurityToken();
             this.ramRefreshTime = getCurrentTime();
         } catch (ClientException e) {
-            log.error("createAssumeRoleRequest error, e:{}", ExceptionUtils.getStackTrace(e));
+            log.error("createAssumeRoleRequest error, e:{}", Functions.printThrowable(e));
         }
         return this;
     }
@@ -162,20 +162,20 @@ public class AlibabaSessionTokenCredentials extends AlibabaCredentials implement
                 return FormValidation.error("permission is error");
             }
 
-            if (StringUtils.isBlank(accessKey) && StringUtils.isBlank(value)) {
+            if (Util.fixEmptyAndTrim(accessKey) == null && Util.fixEmptyAndTrim(value) == null) {
                 return FormValidation.ok();
             }
-            if (StringUtils.isBlank(accessKey)) {
+            if (Util.fixEmptyAndTrim(accessKey) == null) {
                 return FormValidation.error("Illegal Access Key");
             }
-            if (StringUtils.isBlank(value)) {
+            if (Util.fixEmptyAndTrim(value) == null) {
                 return FormValidation.error("Illegal Secret Key");
             }
 
             AlibabaCredentials credentials = new AlibabaCredentials(accessKey, value);
             AlibabaClient client = new AlibabaClient(credentials, DEFAULT_ECS_REGION, false);
             // If iamRoleArn is specified, swap out the credentials.
-            if (!StringUtils.isBlank(iamRoleArn)) {
+            if (Util.fixEmptyAndTrim(iamRoleArn) != null) {
                 try {
                     AssumeRoleResponse acsResponse = client.createAssumeRoleRequest(iamRoleArn, roleSessionName, stsTokenDuration);
                     AlibabaCloudRamCredentials alibabaSessionTokenCredentials = new AlibabaSessionTokenCredentials(

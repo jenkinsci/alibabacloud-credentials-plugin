@@ -8,15 +8,15 @@ import com.cloudbees.plugins.credentials.CredentialsMatchers;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.SystemCredentialsProvider.StoreImpl;
 import com.cloudbees.plugins.credentials.domains.Domain;
+import hudson.Functions;
 import hudson.security.ACL;
 import jenkins.model.Jenkins;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.exception.ExceptionUtils;
 
 import javax.annotation.CheckForNull;
 import java.io.IOException;
 import java.util.Collections;
+import hudson.Util;
 
 /**
  * Created by kunlun.ykl on 2020/8/26.
@@ -27,7 +27,7 @@ public class CredentialsHelper {
 
     @CheckForNull
     public static AlibabaCredentials getCredentials(@CheckForNull String credentialsId) {
-        if (StringUtils.isBlank(credentialsId)) {
+        if (Util.fixEmptyAndTrim(credentialsId) == null) {
             log.warn("getCredentials credentialsId is null, credentialsId:{}", credentialsId);
             return null;
         }
@@ -96,7 +96,7 @@ public class CredentialsHelper {
             sessionTokenCredentials.setSecretToken(replacement.getSecretToken());
             return true;
         } catch (IOException e) {
-            log.error("refreshRamCredentials error, credentialsId:{}, e:{}", sessionTokenCredentials.getId(), ExceptionUtils.getStackTrace(e));
+            log.error("refreshRamCredentials error, credentialsId:{}, e:{}", sessionTokenCredentials.getId(), Functions.printThrowable(e));
         }
         return false;
     }

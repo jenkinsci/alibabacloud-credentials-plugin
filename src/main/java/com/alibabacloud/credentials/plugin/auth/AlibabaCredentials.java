@@ -15,7 +15,6 @@ import hudson.util.Secret;
 import jenkins.model.Jenkins;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.interceptor.RequirePOST;
@@ -26,6 +25,7 @@ import static hudson.security.Permission.UPDATE;
 
 import java.util.List;
 import java.util.UUID;
+import hudson.Util;
 
 
 /**
@@ -121,13 +121,13 @@ public class AlibabaCredentials extends BaseStandardCredentials implements Aliba
                 return FormValidation.error("permission is error");
             }
 
-            if (StringUtils.isBlank(accessKey) && StringUtils.isBlank(value)) {
+            if (Util.fixEmptyAndTrim(accessKey) == null && Util.fixEmptyAndTrim(value) == null) {
                 return FormValidation.ok();
             }
-            if (StringUtils.isBlank(accessKey)) {
+            if (Util.fixEmptyAndTrim(accessKey) == null) {
                 return FormValidation.error("Illegal Access Key");
             }
-            if (StringUtils.isBlank(value)) {
+            if (Util.fixEmptyAndTrim(value) == null) {
                 return FormValidation.error("Illegal Secret Key");
             }
 
